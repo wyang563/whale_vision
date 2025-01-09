@@ -1,0 +1,31 @@
+run:
+  task: "segmentation"
+  mode: "train"
+
+augmentation:
+  horizontal_flip: true
+  vertical_flip: true
+  normalize: true
+
+model:
+  architecture: "Unet"
+  input_shape: [500, 300]
+  dropout_rate: 0.3
+
+training:
+  batch_size: 4
+  epochs: 50
+  learning_rate: 0.001
+  shuffle: true,
+  optimizer: "adam"
+  loss_function: "categorical_crossentropy"
+  metrics: ["accuracy", "iou_score"]
+
+callbacks:
+  early_stopping:
+    monitor: "val_loss"
+    patience: 10
+  model_checkpoint:
+    filepath: "./checkpoints/best_model.h5"
+    save_best_only: true
+    monitor: "val_loss"
