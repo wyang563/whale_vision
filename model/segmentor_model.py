@@ -78,7 +78,7 @@ class UNet(nn.Module):
         dec1 = self.decoder1(dec1)
         
         output = torch.sigmoid(self.conv_final(dec1))
-        return F.interpolate(output, size=(300, 500), mode="bilinear", align_corners=False)
+        return F.interpolate(output, size=(500, 300), mode="bilinear", align_corners=False)
 
 if __name__ == "__main__":
     input_tensor = torch.randn((1, 3, 300, 500))      

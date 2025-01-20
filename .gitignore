@@ -1,2 +1,6 @@
 data/recognition_dataset/
 data/segmentation_dataset/
+
+*/__pycache__/
+
+logs/
