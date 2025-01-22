@@ -1,5 +1,6 @@
 data/recognition_dataset/
 data/segmentation_dataset/
+data/rcnn_segment_dataset/
 
 */__pycache__/
 

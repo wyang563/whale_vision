@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torchvision
+from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
 def conv_block(in_c, out_c):
     return nn.Sequential(
@@ -17,6 +19,16 @@ def crop_to_match(tensor, target_tensor):
     _, _, h, w = target_tensor.size()
     tensor = F.interpolate(tensor, size=(h, w), mode="bilinear", align_corners=False)
     return tensor
+
+def get_fasterrcnn_model(num_classes):
+    model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
+
+    # Get number of input features for the classifier
+    in_features = model.roi_heads.box_predictor.cls_score.in_features
+
+    # Replace the pre-trained head with a new one
+    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
+    return model
 
 class UNet(nn.Module):
     def __init__(self, in_channels=3, out_channels=1):
