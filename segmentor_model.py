@@ -32,7 +32,7 @@ def get_fasterrcnn_model(num_classes):
     return model
 
 def get_yolo_model():
-    pass
+    return YOLO("yolo11n-obb.pt")
 
 class UNet(nn.Module):
     def __init__(self, in_channels=3, out_channels=1):

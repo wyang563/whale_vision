@@ -9,16 +9,24 @@ from torchvision.transforms import functional as F
 import cv2
 import csv
 import torch
+import logging
 
 class SegmentedBoxesDataset(Dataset):
-    def __init__(self, config):
+    def __init__(self, config, logger):
         self.data_path = config["data_path"]
-        self.image_files = os.listdir(self.data_path)
-        self.boxes_file = self.data_path[:self.data_path.rfind("/")] + "/train_segmented_boxes.csv"
-        self.centroids_file = self.data_path[:self.data_path.rfind("/")] + "/train_centroids.csv"
+        self.image_files = [f for f in os.listdir(self.data_path) if f != ".DS_Store"]
+        self.image_files.sort()
+        if config["run"]["mode"] == "train":
+            self.boxes_file = self.data_path[:self.data_path.rfind("/")] + "/train_segmented_boxes.csv"
+            self.centroids_file = self.data_path[:self.data_path.rfind("/")] + "/train_segmented_centers.csv"
+        else:
+            self.boxes_file = self.data_path[:self.data_path.rfind("/")] + "/test_segmented_boxes.csv"
+            self.centroids_file = self.data_path[:self.data_path.rfind("/")] + "/test_segmented_centers.csv"
+
         self.config = config
         self.running_mode = config["run"]["mode"]
         self.input_shape = config["model"]["input_shape"]
+        self.logger = logger
 
         # set transforms
         data_transforms = []
@@ -31,35 +39,36 @@ class SegmentedBoxesDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.data_path, self.image_files[idx])
-        image = cv2.imread(img_path)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = Image.open(img_path).convert('RGB')
         
         # retrieve bounding boxes
         with open(self.boxes_file, "r") as f:
             reader = csv.reader(f)
             for i, row in enumerate(reader):
                 if i == idx:
-                    boxes = row
+                    boxes = row[1:]
                     break
         
         with open(self.centroids_file, "r") as f:
             reader = csv.reader(f)
             for i, row in enumerate(reader):
                 if i == idx:
-                    centroids = row
+                    centroids = row[1:]
                     break
 
         labels = []
+        # self.logger.info(f"boxes: {boxes}")
         for i in range(0, len(boxes), 8):
             if "nan" not in boxes[i:i+8]:
                 labels.append(i // 8 + 1)
+        
+        # self.logger.info(f"labels: {labels}")
 
         # get coords and scale them according to input image size
         incr = self.config["model"]["input_shape"][1] / 2560
 
         box_coords = [incr * float(coord) for coord in boxes if coord != "nan"]
         centroid_coords = [incr * float(coord) for coord in centroids if coord != "nan"]
-
         box_coords = [[[box_coords[i], box_coords[i+1]], 
                        [box_coords[i+2], box_coords[i+3]],
                        [box_coords[i+4], box_coords[i+5]],
@@ -91,7 +100,6 @@ class SegmentedBoxesDataset(Dataset):
                                          max([float(x[1]) for x in a])], box_coords))
 
         image = self.transforms(image)
-
         return image, torch.tensor(box_coords).to(torch.long), torch.tensor(labels).to(torch.long), torch.tensor(centroid_coords).to(torch.long)
 
 class SegmentorDataset(Dataset):
@@ -174,13 +182,13 @@ class RecognitionDataset(Dataset):
         image = self.transforms(image)
         return image, label
 
-def get_dataloader(config):
+def get_dataloader(config, logger):
     if config["run"]["task"] == "segmentation":
         dataset = SegmentorDataset(config)
     elif config["run"]["task"] == "recognition":
         dataset = RecognitionDataset(config)
-    elif config["run"]["task"] == "segmented_boxes":
-        dataset = SegmentedBoxesDataset(config)
+    elif config["run"]["task"] == "rcnn":
+        dataset = SegmentedBoxesDataset(config, logger)
     else:
         raise Exception("Invalid train run task mode")
 

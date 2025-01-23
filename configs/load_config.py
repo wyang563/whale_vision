@@ -13,9 +13,9 @@ def load_config(config_path):
             config["data_path"] = "data/segmentation_dataset/test"
     elif config["run"]["task"].lower() in ["rcnn", "yolo"]:
         if config["run"]["mode"] == "train":
-            config["data_path"] = "data/rcnn_dataset/train"
+            config["data_path"] = "data/rcnn_segment_dataset/images/train"
         else:
-            config["data_path"] = "data/rcnn_dataset/test"
+            config["data_path"] = "data/rcnn_segment_dataset/images/test"
     else:
         if config["run"]["mode"] == "train":
             config["data_path"] = "data/recognition_dataset/train"

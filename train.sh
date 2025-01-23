@@ -3,4 +3,4 @@
 #SBATCH -c 4
 
 source setup.sh
-python scripts/train.py --debug true
+python scripts/train_yolo.py

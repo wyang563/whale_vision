@@ -1,5 +1,5 @@
 run:
-  task: "segmented_boxes"
+  task: "rcnn"
   mode: "train"
 
 augmentation:
@@ -9,13 +9,13 @@ augmentation:
 
 model:
   architecture: "rcnn"
-  input_shape: [500, 300]
+  input_shape: [1280, 720]
   dropout_rate: 0.5
 
 training:
   batch_size: 1
   epochs: 50
-  learning_rate: 0.01
+  learning_rate: 0.00001
   shuffle: true
 
 callbacks:
