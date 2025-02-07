@@ -1,35 +1,59 @@
 import torch
-import torch.nn as nn
-from tqdm import tqdm
-from configs.load_config import load_config
 from datetime import datetime
-import numpy as np
-import logging
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
+import os
 from ultralytics import YOLO
 
-config = load_config("configs/config.yaml")
-device = "cuda" if torch.cuda.is_available() else "cpu"
+if __name__ == "__main__":
+    # TOGGLE PER RUN
+    mode = "val"
 
-# logger setup code
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-console_handler.setFormatter(formatter)
-logger.addHandler(console_handler)
+    device = 0 if torch.cuda.is_available() else "cpu"
+    data_folder = "data/rcnn_segment_dataset/images/train/"
+    run_name = f"{mode}_yolorun_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+    torch.cuda.empty_cache()
 
-train_run_name = f"yolorun_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+    if mode == "pretrained":
+        model = YOLO("yolo11n-obb.pt")
+        results = model.predict([data_folder + "0_1688827660979_frame0.jpg"],
+                                imgsz=(1080, 1920),
+                                device=device,
+                                project="/home/gridsan/wyang/super_urop_workspace/whale_vision/logs",
+                                name=run_name,
+                                save=True,
+                                )
+    elif mode == "train":
+        model = YOLO("yolo11n-obb.pt")
+        results = model.train(data="data/yolo_dataset.yaml", 
+                            epochs=100, 
+                            imgsz=1920, 
+                            device=device, 
+                            pretrained=True, 
+                            rect=True,
+                            project="/home/gridsan/wyang/super_urop_workspace/whale_vision/logs",
+                            name=run_name,
+                            multi_scale=False,
+                            overlap_mask=False,
+                            batch=16)
+    elif mode == "val":
+        model_weights = "logs/train_yolorun_2025-01-29_09-28-21/weights/best.pt"
+        model = YOLO(model_weights)
+        metrics = model.val(batch=8)
+        print(metrics)
 
-
-model = YOLO("yolo11n-obb.pt")
-results = model.train(data="data/rcnn_segment_dataset.yaml", 
-                    epochs=10, 
-                    imgsz=[2560, 1440], 
-                    device=0, 
-                    pretrained=True, 
-                    rect=True,
-                    project="/home/gridsan/wyang/super_urop_workspace/whale_vision/logs",
-                    name=train_run_name)
+    else:     
+        # get latest model run
+        model_weights = "logs/train_yolorun_2025-01-24_12-45-45/weights/best.pt"
+        model = YOLO(model_weights)
+        model.eval()
+        with torch.no_grad():
+            images = os.listdir(data_folder)
+            results = model.predict(source=data_folder + images[0],
+                                    conf=0,
+                                    iou=0.2,
+                                    imgsz=[1080, 1920],
+                                    device=device,
+                                    project="/home/gridsan/wyang/super_urop_workspace/whale_vision/logs",
+                                    name=run_name,
+                                    save=True
+                                    )
+            print(results)
