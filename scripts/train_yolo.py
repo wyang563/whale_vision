@@ -5,10 +5,10 @@ from ultralytics import YOLO
 
 if __name__ == "__main__":
     # TOGGLE PER RUN
-    mode = "val"
+    mode = "predict"
 
     device = 0 if torch.cuda.is_available() else "cpu"
-    data_folder = "data/rcnn_segment_dataset/images/train/"
+    data_folder = "data/yolo_dataset/images/train/"
     run_name = f"{mode}_yolorun_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     torch.cuda.empty_cache()
 
@@ -42,18 +42,19 @@ if __name__ == "__main__":
 
     else:     
         # get latest model run
-        model_weights = "logs/train_yolorun_2025-01-24_12-45-45/weights/best.pt"
+        model_weights = "logs/train_yolorun_2025-01-29_09-28-21/weights/last.pt" 
         model = YOLO(model_weights)
-        model.eval()
         with torch.no_grad():
             images = os.listdir(data_folder)
-            results = model.predict(source=data_folder + images[0],
-                                    conf=0,
+            results = model.predict(source=[data_folder + images[i] for i in range(20)],
+                                    conf=0.25,
                                     iou=0.2,
-                                    imgsz=[1080, 1920],
+                                    imgsz = 1920,
                                     device=device,
                                     project="/home/gridsan/wyang/super_urop_workspace/whale_vision/logs",
                                     name=run_name,
                                     save=True
                                     )
-            print(results)
+            for r in results:
+                for b in r["boxes"]:
+                    print(b.xyzy.tolist())
