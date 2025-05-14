@@ -2,10 +2,12 @@ data/recognition_dataset/
 data/segmentation_dataset/
 data/rcnn_segment_dataset/
 data/yolo_dataset
+data/yolo_dataset_m
+data/video_1
+data/video_2
 
 */__pycache__/
 .DS_Store
 
 logs/
 runs/
-/RRPN_plusplus

@@ -5,9 +5,9 @@ from ultralytics import YOLO
 
 if __name__ == "__main__":
     # TOGGLE PER RUN
-    mode = "predict"
+    mode = "train"
 
-    device = 0 if torch.cuda.is_available() else "cpu"
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     data_folder = "data/yolo_dataset/images/train/"
     run_name = f"{mode}_yolorun_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     torch.cuda.empty_cache()
@@ -24,16 +24,30 @@ if __name__ == "__main__":
     elif mode == "train":
         model = YOLO("yolo11n-obb.pt")
         results = model.train(data="data/yolo_dataset.yaml", 
-                            epochs=100, 
-                            imgsz=1920, 
+                            epochs=150, 
+                            imgsz=1280, 
                             device=device, 
                             pretrained=True, 
-                            rect=True,
+                            rect=False,
                             project="/home/gridsan/wyang/super_urop_workspace/whale_vision/logs",
                             name=run_name,
                             multi_scale=False,
                             overlap_mask=False,
-                            batch=16)
+                            batch=16,
+                            hsv_h=0.03,
+                            hsv_s=0.8,
+                            hsv_v=0.6,
+                            degrees=180,
+                            translate=0.3,
+                            scale=0.75,
+                            shear=0,
+                            flipud=0.5,
+                            fliplr=0.5,
+                            mosaic=0,
+                            mixup=0,
+                            copy_paste=0,
+                            erasing=0.0)
+
     elif mode == "val":
         model_weights = "logs/train_yolorun_2025-01-29_09-28-21/weights/best.pt"
         model = YOLO(model_weights)
@@ -48,11 +62,15 @@ if __name__ == "__main__":
             images = os.listdir(data_folder)
             results = model.predict(source=[data_folder + images[i] for i in range(20)],
                                     conf=0.25,
-                                    iou=0.2,
-                                    imgsz = 1920,
+                                    imgsz = 640,
                                     device=device,
                                     project="/home/gridsan/wyang/super_urop_workspace/whale_vision/logs",
                                     name=run_name,
+                                    show=True,
+                                    save_txt=True,
+                                    show_boxes=True,
+                                    show_labels=True,
+                                    show_conf=True,
                                     save=True
                                     )
             for r in results:

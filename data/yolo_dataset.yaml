@@ -1,6 +1,6 @@
-path: /home/gridsan/wyang/super_urop_workspace/whale_vision/data/yolo_dataset
-train: /home/gridsan/wyang/super_urop_workspace/whale_vision/data/yolo_dataset/images/train
-val: /home/gridsan/wyang/super_urop_workspace/whale_vision/data/yolo_dataset/images/val
+path: /home/alex/multienv_sim/whale_vision/data/yolo_dataset
+train: /home/alex/multienv_sim/whale_vision/data/yolo_dataset/images/train
+val: /home/alex/multienv_sim/whale_vision/data/yolo_dataset/images/val
 nc: 1
 names:
   0: "w"

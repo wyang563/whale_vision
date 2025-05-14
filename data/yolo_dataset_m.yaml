@@ -1,0 +1,6 @@
+path: /home/alex/multienv_sim/whale_vision/data/yolo_dataset_m
+train: /home/alex/multienv_sim/whale_vision/data/yolo_dataset_m/images/train
+val: /home/alex/multienv_sim/whale_vision/data/yolo_dataset_m/images/val
+nc: 1
+names:
+  0: "w"
